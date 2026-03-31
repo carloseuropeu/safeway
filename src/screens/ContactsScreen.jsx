@@ -45,6 +45,13 @@ export default function ContactsScreen({ session }) {
         setSaving(false)
         return
       }
+      // Garantir que o perfil existe na tabela users antes de inserir o contacto
+      await supabase.from('users').upsert({
+        id: session.user.id,
+        email: session.user.email,
+        plano: 'gratis',
+      }, { onConflict: 'id' })
+
       const { error } = await supabase
         .from('trusted_contacts')
         .insert({
@@ -124,6 +131,7 @@ export default function ContactsScreen({ session }) {
                       <p style={s.contactPhone}>{c.telefone}</p>
                     </div>
                     <div style={s.actions}>
+                      <button style={s.callBtn} onClick={() => { window.location.href = 'tel:' + c.telefone }}>📞</button>
                       <button style={s.editBtn} onClick={() => handleEdit(c)}>✏️</button>
                       <button style={s.deleteBtn} onClick={() => handleDelete(c.id)}>🗑️</button>
                     </div>
@@ -256,6 +264,14 @@ const styles = {
   actions: {
     display: 'flex',
     gap: '8px',
+  },
+  callBtn: {
+    background: 'rgba(78,205,196,0.08)',
+    border: 'none',
+    borderRadius: '10px',
+    padding: '9px 10px',
+    cursor: 'pointer',
+    fontSize: '15px',
   },
   editBtn: {
     background: 'rgba(102,126,234,0.08)',
